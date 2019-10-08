@@ -32,7 +32,6 @@ public class MedcorderAudioPlugin implements MethodCallHandler, EventChannel.Str
   private static final String TAG = "MEDCORDER";
   private EventChannel.EventSink eventSink;
 
-  private Context context;
   private Timer recordTimer;
   private Timer playTimer;
 
@@ -45,12 +44,11 @@ public class MedcorderAudioPlugin implements MethodCallHandler, EventChannel.Str
   private String currentPlayingFile;
   private boolean isPlaying = false;
   private double playerSecondsElapsed;
+  private Registrar registrar;
 
-  private Activity activity;
 
-  MedcorderAudioPlugin(Activity _activity){
-    this.activity = _activity;
-    this.context = this.activity.getApplicationContext();
+  MedcorderAudioPlugin(Registrar registrar){
+    this.registrar = registrar;
   }
 
   public static void registerWith(Registrar registrar) {
@@ -103,7 +101,7 @@ public class MedcorderAudioPlugin implements MethodCallHandler, EventChannel.Str
     if (eventSink != null){
 
         //Run this in the UI thread to avoid a crash in flutter engine.
-        this.activity.runOnUiThread(new Runnable() {
+        this.registrar.activity().runOnUiThread(new Runnable() {
         @Override
         public void run() {
           eventSink.success(o);
@@ -114,7 +112,7 @@ public class MedcorderAudioPlugin implements MethodCallHandler, EventChannel.Str
   }
 
   private boolean checkMicrophonePermissions(){
-    int permissionCheck = ContextCompat.checkSelfPermission(activity,
+    int permissionCheck = ContextCompat.checkSelfPermission(registrar.activity(),
             Manifest.permission.RECORD_AUDIO);
     boolean permissionGranted = permissionCheck == PackageManager.PERMISSION_GRANTED;
     return permissionGranted;
@@ -124,7 +122,7 @@ public class MedcorderAudioPlugin implements MethodCallHandler, EventChannel.Str
     Log.d(TAG, "startRecord:" + fileName);
     recorder = new MediaRecorder();
     try {
-      currentOutputFile = activity.getApplicationContext().getFilesDir() + "/" + fileName + ".aac";
+      currentOutputFile = registrar.activity().getApplicationContext().getFilesDir() + "/" + fileName + ".aac";
       recorder.setAudioSource(MediaRecorder.AudioSource.MIC);
       int outputFormat = MediaRecorder.OutputFormat.AAC_ADTS;
       recorder.setOutputFormat(outputFormat);
@@ -229,11 +227,11 @@ public class MedcorderAudioPlugin implements MethodCallHandler, EventChannel.Str
       player = null;
     }
 
-    currentPlayingFile = activity.getApplicationContext().getFilesDir() + "/" + fileName + ".aac";
+    currentPlayingFile = registrar.activity().getApplicationContext().getFilesDir() + "/" + fileName + ".aac";
     File file = new File(currentPlayingFile);
     if (file.exists()) {
       Uri uri = Uri.fromFile(file);
-      player =  MediaPlayer.create(this.context, uri);
+      player =  MediaPlayer.create(this.registrar.activity().getApplicationContext(), uri);
       player.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
         boolean callbackWasCalled = false;
 
