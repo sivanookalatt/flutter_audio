@@ -52,7 +52,7 @@ public class MedcorderAudioPlugin implements MethodCallHandler, EventChannel.Str
   }
 
   public static void registerWith(Registrar registrar) {
-    final MedcorderAudioPlugin plugin = new MedcorderAudioPlugin(registrar.activity());
+    final MedcorderAudioPlugin plugin = new MedcorderAudioPlugin(registrar);
 
     final MethodChannel methodChannel = new MethodChannel(registrar.messenger(), "medcorder_audio");
     methodChannel.setMethodCallHandler(plugin);
